@@ -1,0 +1,11 @@
+package: github.com/kawabet/goa-react-ts
+import:
+- package: github.com/goadesign/goa
+  version: ~1.2.0
+  subpackages:
+  - design
+  - design/apidsl
+  - middleware
+- package: golang.org/x/net
+  subpackages:
+  - websocket
