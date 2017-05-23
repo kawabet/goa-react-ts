@@ -20,7 +20,7 @@ clean:
 	@rm -rf public/swagger
 	@rm -rf public/schema
 	@rm -rf public/js
-	@rm -f app
+	@rm -f api
 
 bootstrap:
 	@goagen main    -d github.com/kawabet/goa-react-ts/design -o controllers
@@ -33,5 +33,5 @@ generate:
 	@goagen js      -d github.com/kawabet/goa-react-ts/design -o public
 
 build:
-	@go build -o app
+	@go build -o api
 

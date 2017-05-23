@@ -28,10 +28,10 @@ func main() {
 
 	// Mount "message" controller
 	c := NewMessageController(service, db)
-	app.MountMessageController(service, c)
+	// app.MountMessageController(service, c)
 	// Mount "room" controller
 	c2 := NewRoomController(service, db)
-	app.MountRoomController(service, c2)
+	// app.MountRoomController(service, c2)
 
 	// Start service
 	if err := service.ListenAndServe(":8080"); err != nil {
