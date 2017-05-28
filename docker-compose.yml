@@ -1,0 +1,22 @@
+version: "2"
+
+services:
+  mysql:
+    image: mysql:5.7.18
+    container_name: "goa-react-ts-db"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'dev'
+      MYSQL_HOST: mysql
+      MYSQL_USER: 'works'
+      MYSQL_PASSWORD: 'works'
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    volumes:
+      - ./.docker/mysql/conf:/etc/mysql/conf.d
+      - ./.docker/mysql/sql:/docker-entrypoint-initdb.d
+      - ./.docker/mysql/data:/var/lib/mysql
+
+

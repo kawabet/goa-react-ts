@@ -3,9 +3,11 @@ package controllers
 import (
 	"database/sql"
 	"io"
+	"time"
 
 	"github.com/goadesign/goa"
-	"github.com/kawabet/goa-react-ts/controllers/app"
+	"github.com/kawabet/goa-react-ts/back/app"
+	"github.com/kawabet/goa-react-ts/back/models"
 	"golang.org/x/net/websocket"
 )
 
@@ -25,33 +27,41 @@ func NewRoomController(service *goa.Service, db *sql.DB) *RoomController {
 
 // List runs the list action.
 func (c *RoomController) List(ctx *app.ListRoomContext) error {
-	// RoomController_List: start_implement
-
-	// Put your logic here
-
-	// RoomController_List: end_implement
 	res := app.RoomCollection{}
+	rooms, err := models.AllRooms(c.db, 100) // とりあえず１００件固定
+	if err != nil {
+		return err
+	}
+	for _, room := range rooms {
+		res = append(res, ToRoomMedia(room))
+	}
 	return ctx.OK(res)
 }
 
 // Post runs the post action.
 func (c *RoomController) Post(ctx *app.PostRoomContext) error {
-	// RoomController_Post: start_implement
-
-	// Put your logic here
-
-	// RoomController_Post: end_implement
-	return nil
+	room := models.Room{
+		Name:        ctx.Payload.Name,
+		Description: ctx.Payload.Description,
+		Created:     time.Now(),
+	}
+	err := room.Insert(c.db)
+	if err != nil {
+		return err
+	}
+	return ctx.Created()
 }
 
 // Show runs the show action.
 func (c *RoomController) Show(ctx *app.ShowRoomContext) error {
-	// RoomController_Show: start_implement
-
-	// Put your logic here
-
-	// RoomController_Show: end_implement
-	res := &app.Room{}
+	room, err := models.RoomByID(c.db, ctx.RoomID)
+	if err != nil {
+		return err
+	}
+	if room == nil {
+		return ctx.NotFound()
+	}
+	res := ToRoomMedia(room)
 	return ctx.OK(res)
 }
 
@@ -73,4 +83,15 @@ func (c *RoomController) WatchWSHandler(ctx *app.WatchRoomContext) websocket.Han
 		// Dummy echo websocket server
 		io.Copy(ws, ws)
 	}
+}
+
+// ToRoomMedia はmodelsの構造体をgoaの構造体に変換します
+func ToRoomMedia(room *models.Room) *app.Room {
+	ret := app.Room{
+		ID:          &room.ID,
+		Description: room.Description,
+		Name:        room.Name,
+		Created:     &room.Created,
+	}
+	return &ret
 }

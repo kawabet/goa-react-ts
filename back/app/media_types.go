@@ -11,9 +11,10 @@
 package app
 
 import (
-	"github.com/goadesign/goa"
 	"time"
 	"unicode/utf8"
+
+	"github.com/goadesign/goa"
 )
 
 // A Message (default view)
