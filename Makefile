@@ -37,7 +37,7 @@ generate:
 	@goagen js      -d github.com/kawabet/goa-react-ts/design -o ./back/public
 
 build:
-	@go build ./back -o server
+	@go build -o server
 
 models:
 	@xo mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@localhost/$(DBNAME)  -o models

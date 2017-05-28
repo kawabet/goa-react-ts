@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/goadesign/goa"
-	"github.com/kawabet/goa-react-ts/back/app"
-	"github.com/kawabet/goa-react-ts/back/models"
+	"github.com/kawabet/goa-react-ts/backend/app"
+	"github.com/kawabet/goa-react-ts/backend/models"
 )
 
 // MessageController implements the message resource.

@@ -1,6 +1,6 @@
 //go:generate goagen bootstrap -d github.com/kawabet/goa-react-ts/design
 
-package back
+package backend
 
 import (
 	"database/sql"
@@ -8,8 +8,8 @@ import (
 	"github.com/goadesign/goa"
 	"github.com/goadesign/goa/middleware"
 
-	"github.com/kawabet/goa-react-ts/back/app"
-	. "github.com/kawabet/goa-react-ts/back/controllers"
+	"github.com/kawabet/goa-react-ts/backend/app"
+	. "github.com/kawabet/goa-react-ts/backend/controllers"
 
 	_ "github.com/go-sql-driver/mysql"
 )
