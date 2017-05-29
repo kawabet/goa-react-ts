@@ -20,16 +20,38 @@ import (
 	"github.com/kawabet/goa-react-ts/backend/client"
 	"github.com/spf13/cobra"
 	"log"
+	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
 )
 
 type (
+	// ListAccountCommand is the command line data structure for the list action of account
+	ListAccountCommand struct {
+		PrettyPrint bool
+	}
+
+	// PostAccountCommand is the command line data structure for the post action of account
+	PostAccountCommand struct {
+		Payload     string
+		ContentType string
+		PrettyPrint bool
+	}
+
+	// ShowAccountCommand is the command line data structure for the show action of account
+	ShowAccountCommand struct {
+		User        string
+		PrettyPrint bool
+	}
+
 	// ListMessageCommand is the command line data structure for the list action of message
 	ListMessageCommand struct {
 		RoomID      int
+		Limit       int
+		Offset      int
 		PrettyPrint bool
 	}
 
@@ -50,6 +72,8 @@ type (
 
 	// ListRoomCommand is the command line data structure for the list action of room
 	ListRoomCommand struct {
+		Limit       int
+		Offset      int
 		PrettyPrint bool
 	}
 
@@ -71,6 +95,12 @@ type (
 		RoomID      int
 		PrettyPrint bool
 	}
+
+	// DownloadCommand is the command line data structure for the download command.
+	DownloadCommand struct {
+		// OutFile is the path to the download output file.
+		OutFile string
+	}
 )
 
 // RegisterCommands registers the resource action CLI commands.
@@ -80,30 +110,57 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 		Use:   "list",
 		Short: `list action`,
 	}
-	tmp1 := new(ListMessageCommand)
+	tmp1 := new(ListAccountCommand)
 	sub = &cobra.Command{
-		Use:   `message ["/api/rooms/ROOMID/messages"]`,
+		Use:   `account ["/api/accounts"]`,
 		Short: ``,
 		RunE:  func(cmd *cobra.Command, args []string) error { return tmp1.Run(c, args) },
 	}
 	tmp1.RegisterFlags(sub, c)
 	sub.PersistentFlags().BoolVar(&tmp1.PrettyPrint, "pp", false, "Pretty print response body")
 	command.AddCommand(sub)
-	tmp2 := new(ListRoomCommand)
+	tmp2 := new(ListMessageCommand)
 	sub = &cobra.Command{
-		Use:   `room ["/api/rooms"]`,
+		Use:   `message ["/api/rooms/ROOMID/messages"]`,
 		Short: ``,
 		RunE:  func(cmd *cobra.Command, args []string) error { return tmp2.Run(c, args) },
 	}
 	tmp2.RegisterFlags(sub, c)
 	sub.PersistentFlags().BoolVar(&tmp2.PrettyPrint, "pp", false, "Pretty print response body")
 	command.AddCommand(sub)
+	tmp3 := new(ListRoomCommand)
+	sub = &cobra.Command{
+		Use:   `room ["/api/rooms"]`,
+		Short: ``,
+		RunE:  func(cmd *cobra.Command, args []string) error { return tmp3.Run(c, args) },
+	}
+	tmp3.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp3.PrettyPrint, "pp", false, "Pretty print response body")
+	command.AddCommand(sub)
 	app.AddCommand(command)
 	command = &cobra.Command{
 		Use:   "post",
 		Short: `post action`,
 	}
-	tmp3 := new(PostMessageCommand)
+	tmp4 := new(PostAccountCommand)
+	sub = &cobra.Command{
+		Use:   `account ["/api/accounts"]`,
+		Short: ``,
+		Long: `
+
+Payload example:
+
+{
+   "body": "this is chat message",
+   "googleUserID": "12345678",
+   "postDate": "1978-09-18T20:35:11+09:00"
+}`,
+		RunE: func(cmd *cobra.Command, args []string) error { return tmp4.Run(c, args) },
+	}
+	tmp4.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp4.PrettyPrint, "pp", false, "Pretty print response body")
+	command.AddCommand(sub)
+	tmp5 := new(PostMessageCommand)
 	sub = &cobra.Command{
 		Use:   `message ["/api/rooms/ROOMID/messages"]`,
 		Short: ``,
@@ -112,16 +169,16 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 Payload example:
 
 {
-   "accountID": 1,
    "body": "this is chat message",
-   "postDate": "1990-05-15T15:21:11+09:00"
+   "googleUserID": "12345678",
+   "postDate": "1978-09-18T20:35:11+09:00"
 }`,
-		RunE: func(cmd *cobra.Command, args []string) error { return tmp3.Run(c, args) },
+		RunE: func(cmd *cobra.Command, args []string) error { return tmp5.Run(c, args) },
 	}
-	tmp3.RegisterFlags(sub, c)
-	sub.PersistentFlags().BoolVar(&tmp3.PrettyPrint, "pp", false, "Pretty print response body")
+	tmp5.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp5.PrettyPrint, "pp", false, "Pretty print response body")
 	command.AddCommand(sub)
-	tmp4 := new(PostRoomCommand)
+	tmp6 := new(PostRoomCommand)
 	sub = &cobra.Command{
 		Use:   `room ["/api/rooms"]`,
 		Short: ``,
@@ -130,54 +187,74 @@ Payload example:
 Payload example:
 
 {
-   "created": "1994-12-20T11:39:22+09:00",
+   "created": "1988-07-20T23:26:33+09:00",
    "description": "room description",
-   "id": 8499853013641584057,
+   "id": 6091946217269568198,
    "name": "room001"
 }`,
-		RunE: func(cmd *cobra.Command, args []string) error { return tmp4.Run(c, args) },
-	}
-	tmp4.RegisterFlags(sub, c)
-	sub.PersistentFlags().BoolVar(&tmp4.PrettyPrint, "pp", false, "Pretty print response body")
-	command.AddCommand(sub)
-	app.AddCommand(command)
-	command = &cobra.Command{
-		Use:   "show",
-		Short: `show action`,
-	}
-	tmp5 := new(ShowMessageCommand)
-	sub = &cobra.Command{
-		Use:   `message ["/api/rooms/ROOMID/messages/MESSAGEID"]`,
-		Short: ``,
-		RunE:  func(cmd *cobra.Command, args []string) error { return tmp5.Run(c, args) },
-	}
-	tmp5.RegisterFlags(sub, c)
-	sub.PersistentFlags().BoolVar(&tmp5.PrettyPrint, "pp", false, "Pretty print response body")
-	command.AddCommand(sub)
-	tmp6 := new(ShowRoomCommand)
-	sub = &cobra.Command{
-		Use:   `room ["/api/rooms/ROOMID"]`,
-		Short: ``,
-		RunE:  func(cmd *cobra.Command, args []string) error { return tmp6.Run(c, args) },
+		RunE: func(cmd *cobra.Command, args []string) error { return tmp6.Run(c, args) },
 	}
 	tmp6.RegisterFlags(sub, c)
 	sub.PersistentFlags().BoolVar(&tmp6.PrettyPrint, "pp", false, "Pretty print response body")
 	command.AddCommand(sub)
 	app.AddCommand(command)
 	command = &cobra.Command{
-		Use:   "watch",
-		Short: `Retrieve room with given id`,
+		Use:   "show",
+		Short: `show action`,
 	}
-	tmp7 := new(WatchRoomCommand)
+	tmp7 := new(ShowAccountCommand)
 	sub = &cobra.Command{
-		Use:   `room ["/api/rooms/ROOMID/watch"]`,
+		Use:   `account ["/api/accounts/USER"]`,
 		Short: ``,
 		RunE:  func(cmd *cobra.Command, args []string) error { return tmp7.Run(c, args) },
 	}
 	tmp7.RegisterFlags(sub, c)
 	sub.PersistentFlags().BoolVar(&tmp7.PrettyPrint, "pp", false, "Pretty print response body")
 	command.AddCommand(sub)
+	tmp8 := new(ShowMessageCommand)
+	sub = &cobra.Command{
+		Use:   `message ["/api/rooms/ROOMID/messages/MESSAGEID"]`,
+		Short: ``,
+		RunE:  func(cmd *cobra.Command, args []string) error { return tmp8.Run(c, args) },
+	}
+	tmp8.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp8.PrettyPrint, "pp", false, "Pretty print response body")
+	command.AddCommand(sub)
+	tmp9 := new(ShowRoomCommand)
+	sub = &cobra.Command{
+		Use:   `room ["/api/rooms/ROOMID"]`,
+		Short: ``,
+		RunE:  func(cmd *cobra.Command, args []string) error { return tmp9.Run(c, args) },
+	}
+	tmp9.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp9.PrettyPrint, "pp", false, "Pretty print response body")
+	command.AddCommand(sub)
 	app.AddCommand(command)
+	command = &cobra.Command{
+		Use:   "watch",
+		Short: `Retrieve room with given id`,
+	}
+	tmp10 := new(WatchRoomCommand)
+	sub = &cobra.Command{
+		Use:   `room ["/api/rooms/ROOMID/watch"]`,
+		Short: ``,
+		RunE:  func(cmd *cobra.Command, args []string) error { return tmp10.Run(c, args) },
+	}
+	tmp10.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp10.PrettyPrint, "pp", false, "Pretty print response body")
+	command.AddCommand(sub)
+	app.AddCommand(command)
+
+	dl := new(DownloadCommand)
+	dlc := &cobra.Command{
+		Use:   "download [PATH]",
+		Short: "Download file with given path",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return dl.Run(c, args)
+		},
+	}
+	dlc.Flags().StringVar(&dl.OutFile, "out", "", "Output file")
+	app.AddCommand(dlc)
 }
 
 func intFlagVal(name string, parsed int) *int {
@@ -333,6 +410,136 @@ func boolArray(ins []string) ([]bool, error) {
 	return vals, nil
 }
 
+// Run downloads files with given paths.
+func (cmd *DownloadCommand) Run(c *client.Client, args []string) error {
+	var (
+		fnf func(context.Context, string) (int64, error)
+		fnd func(context.Context, string, string) (int64, error)
+
+		rpath   = args[0]
+		outfile = cmd.OutFile
+		logger  = goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
+		ctx     = goa.WithLogger(context.Background(), logger)
+		err     error
+	)
+
+	if rpath[0] != '/' {
+		rpath = "/" + rpath
+	}
+	if rpath == "/" {
+		fnf = c.Download
+		if outfile == "" {
+			outfile = "index.html"
+		}
+		goto found
+	}
+	if strings.HasPrefix(rpath, "/static/") {
+		fnd = c.DownloadStatic
+		rpath = rpath[8:]
+		if outfile == "" {
+			_, outfile = path.Split(rpath)
+		}
+		goto found
+	}
+	return fmt.Errorf("don't know how to download %s", rpath)
+found:
+	ctx = goa.WithLogContext(ctx, "file", outfile)
+	if fnf != nil {
+		_, err = fnf(ctx, outfile)
+	} else {
+		_, err = fnd(ctx, rpath, outfile)
+	}
+	if err != nil {
+		goa.LogError(ctx, "failed", "err", err)
+		return err
+	}
+
+	return nil
+}
+
+// Run makes the HTTP request corresponding to the ListAccountCommand command.
+func (cmd *ListAccountCommand) Run(c *client.Client, args []string) error {
+	var path string
+	if len(args) > 0 {
+		path = args[0]
+	} else {
+		path = "/api/accounts"
+	}
+	logger := goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
+	ctx := goa.WithLogger(context.Background(), logger)
+	resp, err := c.ListAccount(ctx, path)
+	if err != nil {
+		goa.LogError(ctx, "failed", "err", err)
+		return err
+	}
+
+	goaclient.HandleResponse(c.Client, resp, cmd.PrettyPrint)
+	return nil
+}
+
+// RegisterFlags registers the command flags with the command line.
+func (cmd *ListAccountCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
+}
+
+// Run makes the HTTP request corresponding to the PostAccountCommand command.
+func (cmd *PostAccountCommand) Run(c *client.Client, args []string) error {
+	var path string
+	if len(args) > 0 {
+		path = args[0]
+	} else {
+		path = "/api/accounts"
+	}
+	var payload client.MessagePayload
+	if cmd.Payload != "" {
+		err := json.Unmarshal([]byte(cmd.Payload), &payload)
+		if err != nil {
+			return fmt.Errorf("failed to deserialize payload: %s", err)
+		}
+	}
+	logger := goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
+	ctx := goa.WithLogger(context.Background(), logger)
+	resp, err := c.PostAccount(ctx, path, &payload, cmd.ContentType)
+	if err != nil {
+		goa.LogError(ctx, "failed", "err", err)
+		return err
+	}
+
+	goaclient.HandleResponse(c.Client, resp, cmd.PrettyPrint)
+	return nil
+}
+
+// RegisterFlags registers the command flags with the command line.
+func (cmd *PostAccountCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
+	cc.Flags().StringVar(&cmd.Payload, "payload", "", "Request body encoded in JSON")
+	cc.Flags().StringVar(&cmd.ContentType, "content", "", "Request content type override, e.g. 'application/x-www-form-urlencoded'")
+}
+
+// Run makes the HTTP request corresponding to the ShowAccountCommand command.
+func (cmd *ShowAccountCommand) Run(c *client.Client, args []string) error {
+	var path string
+	if len(args) > 0 {
+		path = args[0]
+	} else {
+		path = fmt.Sprintf("/api/accounts/%v", url.QueryEscape(cmd.User))
+	}
+	logger := goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
+	ctx := goa.WithLogger(context.Background(), logger)
+	resp, err := c.ShowAccount(ctx, path)
+	if err != nil {
+		goa.LogError(ctx, "failed", "err", err)
+		return err
+	}
+
+	goaclient.HandleResponse(c.Client, resp, cmd.PrettyPrint)
+	return nil
+}
+
+// RegisterFlags registers the command flags with the command line.
+func (cmd *ShowAccountCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
+	var user string
+	cc.Flags().StringVar(&cmd.User, "user", user, ``)
+}
+
 // Run makes the HTTP request corresponding to the ListMessageCommand command.
 func (cmd *ListMessageCommand) Run(c *client.Client, args []string) error {
 	var path string
@@ -343,7 +550,7 @@ func (cmd *ListMessageCommand) Run(c *client.Client, args []string) error {
 	}
 	logger := goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
 	ctx := goa.WithLogger(context.Background(), logger)
-	resp, err := c.ListMessage(ctx, path)
+	resp, err := c.ListMessage(ctx, path, intFlagVal("limit", cmd.Limit), intFlagVal("offset", cmd.Offset))
 	if err != nil {
 		goa.LogError(ctx, "failed", "err", err)
 		return err
@@ -357,6 +564,10 @@ func (cmd *ListMessageCommand) Run(c *client.Client, args []string) error {
 func (cmd *ListMessageCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
 	var roomID int
 	cc.Flags().IntVar(&cmd.RoomID, "roomID", roomID, ``)
+	var limit int
+	cc.Flags().IntVar(&cmd.Limit, "limit", limit, ``)
+	var offset int
+	cc.Flags().IntVar(&cmd.Offset, "offset", offset, ``)
 }
 
 // Run makes the HTTP request corresponding to the PostMessageCommand command.
@@ -432,7 +643,7 @@ func (cmd *ListRoomCommand) Run(c *client.Client, args []string) error {
 	}
 	logger := goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
 	ctx := goa.WithLogger(context.Background(), logger)
-	resp, err := c.ListRoom(ctx, path)
+	resp, err := c.ListRoom(ctx, path, intFlagVal("limit", cmd.Limit), intFlagVal("offset", cmd.Offset))
 	if err != nil {
 		goa.LogError(ctx, "failed", "err", err)
 		return err
@@ -444,6 +655,10 @@ func (cmd *ListRoomCommand) Run(c *client.Client, args []string) error {
 
 // RegisterFlags registers the command flags with the command line.
 func (cmd *ListRoomCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
+	var limit int
+	cc.Flags().IntVar(&cmd.Limit, "limit", limit, ``)
+	var offset int
+	cc.Flags().IntVar(&cmd.Offset, "offset", offset, ``)
 }
 
 // Run makes the HTTP request corresponding to the PostRoomCommand command.

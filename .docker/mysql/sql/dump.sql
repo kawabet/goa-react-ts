@@ -24,10 +24,12 @@ DROP TABLE IF EXISTS `accounts`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `accounts` (
   `name` varchar(256) NOT NULL,
-  `password` varchar(45) NOT NULL,
-  `image` mediumblob,
+  `email` varchar(256) NOT NULL,
+  `image` mediumblob NOT NULL,
+  `google_user_id` varchar(40) NOT NULL,
   `created` datetime NOT NULL,
-  PRIMARY KEY (`name`)
+  PRIMARY KEY (`google_user_id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -50,7 +52,7 @@ DROP TABLE IF EXISTS `messages`;
 CREATE TABLE `messages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `room_id` int(11) NOT NULL,
-  `account_id` int(11) NOT NULL,
+  `google_user_id` varchar(40) NOT NULL,
   `body` varchar(400) NOT NULL,
   `postDate` datetime NOT NULL,
   PRIMARY KEY (`id`),
@@ -67,6 +69,25 @@ LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Temporary table structure for view `messages_with_account`
+--
+
+DROP TABLE IF EXISTS `messages_with_account`;
+/*!50001 DROP VIEW IF EXISTS `messages_with_account`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `messages_with_account` AS SELECT 
+ 1 AS `id`,
+ 1 AS `room_id`,
+ 1 AS `body`,
+ 1 AS `postDate`,
+ 1 AS `name`,
+ 1 AS `email`,
+ 1 AS `google_user_id`,
+ 1 AS `image`*/;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `rooms`
@@ -93,6 +114,24 @@ LOCK TABLES `rooms` WRITE;
 /*!40000 ALTER TABLE `rooms` DISABLE KEYS */;
 /*!40000 ALTER TABLE `rooms` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Final view structure for view `messages_with_account`
+--
+
+/*!50001 DROP VIEW IF EXISTS `messages_with_account`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `messages_with_account` AS select `messages`.`id` AS `id`,`messages`.`room_id` AS `room_id`,`messages`.`body` AS `body`,`messages`.`postDate` AS `postDate`,`accounts`.`name` AS `name`,`accounts`.`email` AS `email`,`accounts`.`google_user_id` AS `google_user_id`,`accounts`.`image` AS `image` from (`messages` join `accounts` on((`accounts`.`google_user_id` = `messages`.`google_user_id`))) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -103,5 +142,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-05-22 13:13:03
-
+-- Dump completed on 2017-05-25 16:40:04

@@ -1,14 +1,12 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
-import * as comm from './chat-client-api';
+import * as comm from 'chat-client-api';
 import { ChatCell } from './components/ChatCell';
 import { List, TextField, RaisedButton } from 'material-ui';
 
-
-
 type ChatProps = RouteComponentProps<{ roomID: number }>;
 interface ChatState {
-    messages: comm.MessageCollection;
+    messages: comm.MessageWithAccountCollection;
     text: string;
 }
 export default class Chat
@@ -18,7 +16,7 @@ export default class Chat
     constructor(props: ChatProps) {
         super(props);
         this.state = {
-            messages: [] as comm.MessageCollection,
+            messages: [] as comm.MessageWithAccountCollection,
             text: ''
         };
         this.messageAPI = new comm.MessageApi();
@@ -29,7 +27,7 @@ export default class Chat
 
     async fetchMessages() {
         const roomID = this.props.match.params.roomID;
-        const messages = await this.messageAPI.messageList({
+        const messages = await this.messageAPI.messageList({ 
             roomID,
             limit: 100,
             offset: 0
@@ -40,27 +38,18 @@ export default class Chat
     }
 
     async postMessage() {
-        const accountID = 10;
         const body = this.state.text;
         const roomID = this.props.match.params.roomID;
         const options: {} = {
-            mode: 'cors',
-            // credentials: 'include',
-            headers: {
-                'content-Type': 'application/json',
-                'accept': 'application/vnd.message+json'
-            }
-        } as {};
+            headers: {'Authorization': 'Bearer ' + sessionStorage.getItem('signedtoken')}
+        };
         const payload = {
-            accountID,
             body
         } as comm.MessagePayload;
         await this.messageAPI.messagePost({
             roomID,
             payload
-        },
-                                          options
-        );
+        },                                options);
         await this.fetchMessages();
         this.setState({ text: '' });
 

@@ -27,8 +27,8 @@ func ListRoomPath() string {
 }
 
 // Retrieve all rooms.
-func (c *Client) ListRoom(ctx context.Context, path string) (*http.Response, error) {
-	req, err := c.NewListRoomRequest(ctx, path)
+func (c *Client) ListRoom(ctx context.Context, path string, limit *int, offset *int) (*http.Response, error) {
+	req, err := c.NewListRoomRequest(ctx, path, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -36,12 +36,22 @@ func (c *Client) ListRoom(ctx context.Context, path string) (*http.Response, err
 }
 
 // NewListRoomRequest create the request corresponding to the list action endpoint of the room resource.
-func (c *Client) NewListRoomRequest(ctx context.Context, path string) (*http.Request, error) {
+func (c *Client) NewListRoomRequest(ctx context.Context, path string, limit *int, offset *int) (*http.Request, error) {
 	scheme := c.Scheme
 	if scheme == "" {
 		scheme = "http"
 	}
 	u := url.URL{Host: c.Host, Scheme: scheme, Path: path}
+	values := u.Query()
+	if limit != nil {
+		tmp13 := strconv.Itoa(*limit)
+		values.Set("limit", tmp13)
+	}
+	if offset != nil {
+		tmp14 := strconv.Itoa(*offset)
+		values.Set("offset", tmp14)
+	}
+	u.RawQuery = values.Encode()
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
@@ -88,6 +98,9 @@ func (c *Client) NewPostRoomRequest(ctx context.Context, path string, payload *R
 		header.Set("Content-Type", "application/json")
 	} else {
 		header.Set("Content-Type", contentType)
+	}
+	if c.JWTSigner != nil {
+		c.JWTSigner.Sign(req)
 	}
 	return req, nil
 }

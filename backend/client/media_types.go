@@ -17,9 +17,85 @@ import (
 	"unicode/utf8"
 )
 
+// A account (default view)
+//
+// Identifier: application/vnd.account+json; view=default
+type Account struct {
+	// Date of creation
+	Created time.Time `form:"created" json:"created" xml:"created"`
+	// ID of room
+	ID       string `form:"id" json:"id" xml:"id"`
+	Password string `form:"password" json:"password" xml:"password"`
+}
+
+// Validate validates the Account media type instance.
+func (mt *Account) Validate() (err error) {
+	if mt.ID == "" {
+		err = goa.MergeErrors(err, goa.MissingAttributeError(`response`, "id"))
+	}
+	if mt.Password == "" {
+		err = goa.MergeErrors(err, goa.MissingAttributeError(`response`, "password"))
+	}
+
+	return
+}
+
+// DecodeAccount decodes the Account instance encoded in resp body.
+func (c *Client) DecodeAccount(resp *http.Response) (*Account, error) {
+	var decoded Account
+	err := c.Decoder.Decode(&decoded, resp.Body, resp.Header.Get("Content-Type"))
+	return &decoded, err
+}
+
+// AccountCollection is the media type for an array of Account (default view)
+//
+// Identifier: application/vnd.account+json; type=collection; view=default
+type AccountCollection []*Account
+
+// Validate validates the AccountCollection media type instance.
+func (mt AccountCollection) Validate() (err error) {
+	for _, e := range mt {
+		if e != nil {
+			if err2 := e.Validate(); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
+	}
+	return
+}
+
+// DecodeAccountCollection decodes the AccountCollection instance encoded in resp body.
+func (c *Client) DecodeAccountCollection(resp *http.Response) (AccountCollection, error) {
+	var decoded AccountCollection
+	err := c.Decoder.Decode(&decoded, resp.Body, resp.Header.Get("Content-Type"))
+	return decoded, err
+}
+
 // DecodeErrorResponse decodes the ErrorResponse instance encoded in resp body.
 func (c *Client) DecodeErrorResponse(resp *http.Response) (*goa.ErrorResponse, error) {
 	var decoded goa.ErrorResponse
+	err := c.Decoder.Decode(&decoded, resp.Body, resp.Header.Get("Content-Type"))
+	return &decoded, err
+}
+
+// a google login (default view)
+//
+// Identifier: application/vnd.login+json; view=default
+type Login struct {
+	URL string `form:"url" json:"url" xml:"url"`
+}
+
+// Validate validates the Login media type instance.
+func (mt *Login) Validate() (err error) {
+	if mt.URL == "" {
+		err = goa.MergeErrors(err, goa.MissingAttributeError(`response`, "url"))
+	}
+	return
+}
+
+// DecodeLogin decodes the Login instance encoded in resp body.
+func (c *Client) DecodeLogin(resp *http.Response) (*Login, error) {
+	var decoded Login
 	err := c.Decoder.Decode(&decoded, resp.Body, resp.Header.Get("Content-Type"))
 	return &decoded, err
 }
@@ -28,14 +104,16 @@ func (c *Client) DecodeErrorResponse(resp *http.Response) (*goa.ErrorResponse, e
 //
 // Identifier: application/vnd.message+json; view=default
 type Message struct {
-	AccountID int       `form:"accountID" json:"accountID" xml:"accountID"`
-	Body      string    `form:"body" json:"body" xml:"body"`
-	PostDate  time.Time `form:"postDate" json:"postDate" xml:"postDate"`
+	Body         string    `form:"body" json:"body" xml:"body"`
+	GoogleUserID string    `form:"googleUserID" json:"googleUserID" xml:"googleUserID"`
+	PostDate     time.Time `form:"postDate" json:"postDate" xml:"postDate"`
 }
 
 // Validate validates the Message media type instance.
 func (mt *Message) Validate() (err error) {
-
+	if mt.GoogleUserID == "" {
+		err = goa.MergeErrors(err, goa.MissingAttributeError(`response`, "googleUserID"))
+	}
 	if mt.Body == "" {
 		err = goa.MergeErrors(err, goa.MissingAttributeError(`response`, "body"))
 	}
@@ -56,26 +134,34 @@ func (c *Client) DecodeMessage(resp *http.Response) (*Message, error) {
 	return &decoded, err
 }
 
-// MessageCollection is the media type for an array of Message (default view)
+// A Message with account (default view)
 //
-// Identifier: application/vnd.message+json; type=collection; view=default
-type MessageCollection []*Message
-
-// Validate validates the MessageCollection media type instance.
-func (mt MessageCollection) Validate() (err error) {
-	for _, e := range mt {
-		if e != nil {
-			if err2 := e.Validate(); err2 != nil {
-				err = goa.MergeErrors(err, err2)
-			}
-		}
-	}
-	return
+// Identifier: application/vnd.message_with_account+json; view=default
+type MessageWithAccount struct {
+	Body         *string    `form:"body,omitempty" json:"body,omitempty" xml:"body,omitempty"`
+	Email        *string    `form:"email,omitempty" json:"email,omitempty" xml:"email,omitempty"`
+	GoogleUserID *string    `form:"googleUserID,omitempty" json:"googleUserID,omitempty" xml:"googleUserID,omitempty"`
+	ID           *int       `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	Image        *string    `form:"image,omitempty" json:"image,omitempty" xml:"image,omitempty"`
+	Name         *string    `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	PostDate     *time.Time `form:"postDate,omitempty" json:"postDate,omitempty" xml:"postDate,omitempty"`
 }
 
-// DecodeMessageCollection decodes the MessageCollection instance encoded in resp body.
-func (c *Client) DecodeMessageCollection(resp *http.Response) (MessageCollection, error) {
-	var decoded MessageCollection
+// DecodeMessageWithAccount decodes the MessageWithAccount instance encoded in resp body.
+func (c *Client) DecodeMessageWithAccount(resp *http.Response) (*MessageWithAccount, error) {
+	var decoded MessageWithAccount
+	err := c.Decoder.Decode(&decoded, resp.Body, resp.Header.Get("Content-Type"))
+	return &decoded, err
+}
+
+// Message_with_accountCollection is the media type for an array of Message_with_account (default view)
+//
+// Identifier: application/vnd.message_with_account+json; type=collection; view=default
+type MessageWithAccountCollection []*MessageWithAccount
+
+// DecodeMessageWithAccountCollection decodes the MessageWithAccountCollection instance encoded in resp body.
+func (c *Client) DecodeMessageWithAccountCollection(resp *http.Response) (MessageWithAccountCollection, error) {
+	var decoded MessageWithAccountCollection
 	err := c.Decoder.Decode(&decoded, resp.Body, resp.Header.Get("Content-Type"))
 	return decoded, err
 }

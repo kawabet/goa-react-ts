@@ -4,8 +4,8 @@
 //
 // Command:
 // $ goagen
-// --design=github.com/kawabet/goa-react-ts/design
-// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts/backend
+// --design=github.com/m0a-mystudy/goa-chat/design
+// --out=$(GOPATH)/src/github.com/m0a-mystudy/goa-chat
 // --version=v1.2.0-dirty
 
 package app
@@ -14,6 +14,12 @@ import (
 	"fmt"
 	"strings"
 )
+
+// AccountHref returns the resource href.
+func AccountHref(user interface{}) string {
+	paramuser := strings.TrimLeftFunc(fmt.Sprintf("%v", user), func(r rune) bool { return r == '/' })
+	return fmt.Sprintf("/api/accounts/%v", paramuser)
+}
 
 // MessageHref returns the resource href.
 func MessageHref(roomID, messageID interface{}) string {

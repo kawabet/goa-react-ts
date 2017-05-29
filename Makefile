@@ -17,7 +17,13 @@ MYSQL_USER     = root
 MYSQL_PASSWORD = root
 .PHONY: all start depend bootstrap generate models client build run
 
-all: clean generate build
+########################################
+# BACKEND
+########################################
+all: clean depend generate build
+
+depend:
+	@glide install
 
 clean:
 	@rm -rf ./backend/app
@@ -39,6 +45,7 @@ generate:
 	@goagen js      -d github.com/kawabet/goa-react-ts/design -o ./backend/public
 
 build:
+	@echo build the app...
 	@go build -o server
 
 models:
@@ -53,3 +60,21 @@ restart: kill
 
 run:
 	@./server
+
+
+########################################
+# FRONTEND
+########################################
+
+generate-front:
+	@swagger-codegen generate -l typescript-fetch -i ./backend/public/swagger/swagger.json -o ./frontapi
+	@jq -s '.[0] * .[1]' frontapi/package.json frontapi/package_replace.json > replaced_package.json
+	@rm frontapi/package.json
+	@mv replaced_package.json frontapi/package.json
+
+build-front:
+	@cd frontapi && yarn
+	@cd frontapi && npm link
+	@cd frontend && npm link frontapi
+	@cd frontend && yarn build
+

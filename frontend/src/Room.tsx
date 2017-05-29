@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { RouteComponentProps, Link } from 'react-router-dom';
+import * as comm from 'chat-client-api';
 import { Card, CardActions, CardHeader, CardText, FlatButton } from 'material-ui';
-import * as base64 from 'base-64';
-
-import * as comm from './chat-client-api';
-
+// import * as base64 from 'base-64';
 const RoomCell = (props: { room: comm.Room }) => {
     const room = props.room;
     return (
@@ -32,6 +30,8 @@ interface RoomState {
 export default class Room extends React.Component<RoomProps, RoomState> {
 
     private roomAPI: comm.RoomApi;
+    // private authAPI: comm.AuthApi;
+
     constructor(props: RoomProps) {
         super(props);
         this.state = {
@@ -39,7 +39,9 @@ export default class Room extends React.Component<RoomProps, RoomState> {
             roomName: '',
             roomDescription: '',
         };
+        // console.log("location.href = " + location.href)
         this.roomAPI = new comm.RoomApi();
+        // this.authAPI = new comm.AuthApi();
         this.fetchRooms.bind(this);
         this.onChangeName.bind(this);
         this.onChangeDescription.bind(this);
@@ -47,7 +49,10 @@ export default class Room extends React.Component<RoomProps, RoomState> {
     }
 
     async fetchRooms() {
-        const rooms = await this.roomAPI.roomList({limit: 100, offset: 1});
+        const rooms = await this.roomAPI.roomList({
+            limit: 100,
+            offset: 0
+        });
         this.setState({
             rooms
         });
@@ -56,24 +61,27 @@ export default class Room extends React.Component<RoomProps, RoomState> {
     async postRoom() {
         const name = this.state.roomName;
         const description = this.state.roomDescription;
-        // let headers = new Headers();
+        const options: {} = {
+            headers: {'Authorization': 'Bearer ' + sessionStorage.getItem('signedtoken')}
+        };
+
         // headers.append('Authorization', 'Basic ' + base64.encode('abe:pass'));
         // headers.append('Content-Type', 'application/json');
         // headers.append('Accept', 'application/vnd.room+json');
-        const options = {
-            mode: 'cors',
-            credentials: 'include',
-            headers: {
-                'Authorization' : 'Basic ' + base64.encode('abe' + ':' + 'pass'),
-                // 'Authorization' : 'abe' + ':' + 'pass'),
-                'Content-Type': 'application/json',
-                'Accept': 'application/vnd.room+json'
-            }
-        } as {};
+        // const options = {
+        //     mode: 'cors',
+        //     // credentials: 'include', 
+        //     headers: {
+        //         'Authorization': 'Basic ' + base64.encode('abe' + ':' + 'pass'),
+        //         'Content-Type': 'application/json',
+        //         'Accept': 'application/vnd.room+json'
+        //     }
+        // } as {};
         const payload = {
             description,
             name
         } as comm.RoomPayload;
+
         try {
             await this.roomAPI.roomPost({ payload }, options);
             await this.fetchRooms();
@@ -101,16 +109,17 @@ export default class Room extends React.Component<RoomProps, RoomState> {
 
         return (
             <div>
-                {rooms.map((room: any) => {
-                    return (
-                        <Link to={`/room/${room.id}`} key={`${room.name}`} >
-                            <RoomCell room={room} />
-                        </Link>
-                    );
-                })}
+                {
+                    rooms.map(room => (<RoomCell room={room} key={`${room.name}`} />))
+                }
                 name: <textarea value={name} onChange={e => (this.onChangeName(e))} />
                 description: <textarea value={description} onChange={e => (this.onChangeDescription(e))} />
-                <button onClick={() => (this.postRoom())}> submit </button>
+                <FlatButton onClick={() => (this.postRoom())}> 
+                    submit 
+                </FlatButton>
+                <FlatButton onClick={() => ( location.href = '/login' )}> 
+                    google login
+                </FlatButton>
             </div>);
     }
 }
