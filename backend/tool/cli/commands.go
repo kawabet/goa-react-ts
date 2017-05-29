@@ -5,7 +5,7 @@
 // Command:
 // $ goagen
 // --design=github.com/kawabet/goa-react-ts/design
-// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts
+// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts/backend
 // --version=v1.2.0-dirty
 
 package cli
@@ -17,7 +17,7 @@ import (
 	"github.com/goadesign/goa"
 	goaclient "github.com/goadesign/goa/client"
 	uuid "github.com/goadesign/goa/uuid"
-	"github.com/kawabet/goa-react-ts/client"
+	"github.com/kawabet/goa-react-ts/backend/client"
 	"github.com/spf13/cobra"
 	"log"
 	"os"

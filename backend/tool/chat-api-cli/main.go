@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	goaclient "github.com/goadesign/goa/client"
-	"github.com/kawabet/goa-react-ts/client"
-	"github.com/kawabet/goa-react-ts/tool/cli"
+	"github.com/kawabet/goa-react-ts/backend/client"
+	"github.com/kawabet/goa-react-ts/backend/tool/cli"
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"

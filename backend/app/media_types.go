@@ -5,16 +5,15 @@
 // Command:
 // $ goagen
 // --design=github.com/kawabet/goa-react-ts/design
-// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts
+// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts/backend
 // --version=v1.2.0-dirty
 
 package app
 
 import (
+	"github.com/goadesign/goa"
 	"time"
 	"unicode/utf8"
-
-	"github.com/goadesign/goa"
 )
 
 // A Message (default view)

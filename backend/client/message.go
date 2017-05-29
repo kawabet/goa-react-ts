@@ -5,7 +5,7 @@
 // Command:
 // $ goagen
 // --design=github.com/kawabet/goa-react-ts/design
-// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts
+// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts/backend
 // --version=v1.2.0-dirty
 
 package client

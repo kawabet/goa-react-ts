@@ -5,7 +5,7 @@
 // Command:
 // $ goagen
 // --design=github.com/kawabet/goa-react-ts/design
-// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts
+// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts/backend
 // --version=v1.2.0-dirty
 
 package test
@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"github.com/goadesign/goa"
 	"github.com/goadesign/goa/goatest"
-	"github.com/kawabet/goa-react-ts/app"
+	"github.com/kawabet/goa-react-ts/backend/app"
 	"io"
 	"log"
 	"net/http"

@@ -5,7 +5,7 @@
 // Command:
 // $ goagen
 // --design=github.com/kawabet/goa-react-ts/design
-// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts/public
+// --out=$(GOPATH)/src/github.com/kawabet/goa-react-ts/backend/public
 // --version=v1.2.0-dirty
 
 package js
@@ -20,6 +20,6 @@ import (
 // Use --noexample to prevent this file from being generated.
 func MountController(service *goa.Service) {
 	// Serve static files under js
-	service.ServeFiles("/js/*filepath", "/Users/kawabe_t/dev/src/github.com/kawabet/goa-react-ts/public/js")
+	service.ServeFiles("/js/*filepath", "/Users/kawabe_t/dev/src/github.com/kawabet/goa-react-ts/backend/public/js")
 	service.LogInfo("mount", "ctrl", "JS", "action", "ServeFiles", "route", "GET /js/*")
 }

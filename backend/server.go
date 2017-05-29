@@ -14,7 +14,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func serve() {
+// Serve はAPIサーバーを起動します
+func Serve() {
 	// Create service
 	service := goa.New("Chat API")
 
